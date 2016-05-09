@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Page Title</title>
+    <style type="text/css">
+        .counties {
+            fill: none;
+        }
+
+        .states {
+            fill: #ccc;
+            stroke: #fff;
+            stroke-linejoin: round;
+        }
+
+        .q0-9 {
+            fill: rgb(247,251,255);
+        }
+
+        .q1-9 {
+            fill: rgb(222,235,247);
+        }
+
+        .q2-9 {
+            fill: rgb(198,219,239);
+        }
+
+        .q3-9 {
+            fill: rgb(158,202,225);
+        }
+
+        .q4-9 {
+            fill: rgb(107,174,214);
+        }
+
+        .q5-9 {
+            fill: rgb(66,146,198);
+        }
+
+        .q6-9 {
+            fill: rgb(33,113,181);
+        }
+
+        .q7-9 {
+            fill: rgb(8,81,156);
+        }
+
+        .q8-9 {
+            fill: rgb(8,48,107);
+        }
+
+        #wrapper {
+            padding-top: 35px;
+        }
+
+        #map-canvas {
+            height: 600px;
+            width: 1000px;
+            margin: 0 auto;
+        }
+
+        #loading {
+            padding-top: 15px;
+            width: 200px;
+            margin: 0 auto;
+        }
+
+        .fa-spinner {
+            -webkit-animation: spin 1300ms infinite linear;
+            -moz-animation: spin 1300ms infinite linear;
+            -ms-animation: spin 1300ms infinite linear;
+            -o-animation: spin 1300ms infinite linear;
+            animation: spin 1300ms infinite linear;
+            font-size: 41px;
+            text-decoration: none;
+            color: #C0C0C0;
+        }
+
+        .hidden {
+            display: none;
+            visibility: hidden;
+        }
+
+        @-webkit-keyframes spin {
+            to {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @-moz-keyframes spin {
+            to {
+                -moz-transform: rotate(360deg);
+            }
+        }
+
+        @-ms-keyframes spin {
+            to {
+                -ms-transform: rotate(360deg);
+            }
+        }
+
+        @-o-keyframes spin {
+            to {
+                -o-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="https://d3js.org/topojson.v1.min.js"></script>
+    <script>
+        var width = 960, height = 600;
+
+        // Define quantize scale to sort data values into buckets of color
+        var quantize = d3.scale.quantize()
+            .range([
+                'rgb(237,248,233)', 'rgb(186,228,179)',
+                'rgb(116,196,118)', 'rgb(49,163,84)',
+                'rgb(0,109,44)'
+            ]);
+
+        //var quantize = d3.scale.quantize()
+        //    .domain([0, .15])
+        //    .range(d3.range(9).map(function (i) { return 'q' + i + '-9'; }));
+
+        var svg = null, projection = null;
+
+        $(document).ready(function () {
+
+            // Load in agriculture data with D3
+            d3.csv('us-ag-productivity-2004.csv', function (data) {
+                // Set input domain for color scale
+                quantize.domain([
+					d3.min(data, function (d) { return d.value; }),
+					d3.max(data, function (d) { return d.value; })
+                ]);
+
+                loadTopoJson(data);
+            });
+
+            d3.select(self.frameElement).style('height', height + 'px');
+        });
+
+        function loadTopoJson(data) {           
+            
+            d3.json('us-states.json', function (error, json) {
+
+                if (error) {
+                    return console.warn(error);
+                }
+
+                var features = topojson.feature(json, json.objects.states).features;
+
+                // Merge the ag. data and GeoJSON
+                // Loop through once for each ag. data value
+                for (var i = 0; i < data.length; i++) {
+
+                    // Grab state name
+                    var dataState = data[i].state;
+                    // Grab data value, and convert from string to float
+                    var dataValue = parseFloat(data[i].value);
+
+                    //Find the corresponding state inside the GeoJSON
+                    for (var j = 0; j < features.length; j++) {
+
+                        var jsonState = features[j].properties.name;
+                        if (dataState == jsonState) {
+                            // Copy the data value into the JSON
+                            features[j].properties.value = dataValue;
+                            // Stop looking through the JSON
+                            break;
+                        }
+                    }
+                }
+
+                drawStates(features);
+            });
+        }
+
+        function drawStates(features) {
+            // @see http://geojson.org/
+            //var path = d3.geo.path();
+
+            // Create a first guess for the projection
+            //var center = d3.geo.centroid(json)
+            //var scale = 60000;
+
+            // The projection function takes a location [longitude, latitude]
+            // and returns a Cartesian coordinates [x,y] (in pixels).
+            //
+            // D3 has several built-in projections. Albers USA is a composite projection
+            // that nicely tucks Alaska and Hawaii beneath the Southwest.
+            //
+            // Albers USA (albersUsa) is actually the default projection for d3.path.geo()
+            // The default scale value is 1,000. Anything smaller will shrink the map;
+            // anything larger will expand it.
+            //
+            // Add a scale() method with 800 to our projection in order to shrink things down a bit
+            // var projection = d3.geo.albersUsa()
+            //                      .translate([w/2, h/2]).scale([800]);
+            var offset = [width / 2, height / 2];
+            projection = d3.geo.albersUsa()
+                .translate(offset)
+                .scale([800]);
+
+            // We define our first path generator for translating that
+            // mess of GeoJSON coordinates into even messier messes of SVG path codes.
+            // Tell the path generator explicitly that it should reference our customized
+            // projection when generating all those paths
+            var path = d3.geo.path()
+                 .projection(projection);
+
+            // Create SVG element
+            svg = d3.select('#map-canvas').append('svg')
+                .attr('width', width)
+                .attr('height', height);
+
+            svg
+                .append('g')
+                .attr('class', 'states')
+                .selectAll('path')          // select all the current path nodes
+                .data(features)        // bind these to the features array in json
+                .enter().append('path')     // if not enough elements create a new path
+                .attr('d', path)
+                //.attr('class', quantize)    // add attribute class and fill with result from quantize
+                //.attr('fill', '#85C3C0')    // output fill="#85C3C0" stroke="#222" with the same result
+                //.attr('stroke', '#222')
+                //.style('fill', '#85C3C0')   // output style="fill: rgb(133, 195, 192); stroke: rgb(34, 34, 34);
+                //.style('stroke', '#222')
+                .style('fill', function (d) {
+                    // Get data value
+                    var value = d.properties.value;
+
+                    if (value) {
+                        // If value exists…
+                        return quantize(value);
+                    } else {
+                        // If value is undefined…
+                        return '#CCC';
+                    }
+                });
+
+            drawCities();
+        }
+
+        function drawCities() {
+            //Load in cities data
+            d3.csv('us-cities.csv', function (data) {
+
+                svg.selectAll('circle')
+                   .data(data)
+                   .enter().append('circle')
+                   .attr('cx', function (d) {
+                       return projection([d.lon, d.lat])[0];
+                   })
+                   .attr('cy', function (d) {
+                       return projection([d.lon, d.lat])[1];
+                   })
+                   .attr('r', function (d) {
+                       return Math.sqrt(parseInt(d.population) * 0.00004);
+                   })
+                   .style('fill', 'yellow')
+                   .style('opacity', 0.75);
+
+            });
+        }
+    </script>
+</head>
+<body>
+    <div id="wrapper">
+        <div id="map-canvas"></div>
+        <div id="loading" class="hidden"><a class="fa fa-spinner"></a></div>
+    </div>
+</body>
+</html>

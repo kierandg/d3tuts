@@ -1,0 +1,94 @@
+name,state,code,type,alt_type,lat,lng,level
+An Khê,VN-30,VN.GL.AK,Thị xã,Township,14.023333,108.691389,4
+Bà Rịa,VN-43,VN.BV.BR,Thành phố,City,10.509167,107.179722,2
+Bắc Giang,VN-54,VN.BG.BG,Thành phố,City,21.293333,106.188333,2
+Bắc Kạn,VN-53,VN.BK.BK,Thành phố,City,22.133333,105.852778,3
+Bạc Liêu,VN-55,VN.BL.BL,Thành phố,City,9.268056,105.752222,2
+Bắc Ninh,VN-56,VN.BN.BN,Thành phố,City,21.18,106.066111,2
+Bảo Lộc,VN-35,VN.LD.BC,Thành phố,City,11.546667,107.793611,3
+Bến Tre,VN-50,VN.BR.BE,Thành phố,City,10.238056,106.373889,3
+Biên Hòa,VN-39,VN.DN.BH,Thành phố,City,10.941944,106.847222,1
+Bỉm Sơn,VN-21,VN.TH.BS,Thành phố,City,20.089167,105.863333,3
+Buôn Ma Thuột,VN-33,VN.DC.BM,Thành phố,City,12.661944,108.177778,1
+Cà Mau,VN-59,VN.CM.CM,Thành phố,City,9.175833,105.186389,2
+Cẩm Phả,VN-13,VN.QN.CP,Thành phố,City,21.061667,107.289444,2
+Cam Ranh,VN-34,VN.KH.CR,Thành phố,City,11.9084712,109.1101358,3
+Cần Thơ,VN-CT,VN.CN.CN,Thành phố,Municipality|City,10.0345932,105.721475,1
+Cao Bằng,VN-04,VN.CB.CB,Thành phố,City,22.655556,106.255556,3
+Cao Lãnh,VN-45,VN.DT.CL,Thành phố,City,10.460556,105.6225,3
+Châu Đốc,VN-44,VN.AG.CD,Thành phố,City,10.688889,105.0875,2
+Chí Linh,VN-61,VN.HD.CL,Thị xã,Township,21.1463369,106.4103168,3
+Cửa Lò,VN-22,VN.NA.CL,Thị xã,Township,18.790556,105.725278,3
+Đà Lạt,VN-35,VN.LD.DL,Thành phố,City,11.909167,108.452222,1
+Đà Nẵng,VN-DN,VN.DA.DA,Thành phố,Municipality|City,16.0471585,108.1712096,1
+Điện Biên Phủ,VN-71,VN.DB.DP,Thành phố,City,21.414444,103.041944,3
+Đông Hà,VN-25,VN.QT.DH,Thành phố,City,16.803333,107.086667,3
+Đồng Hới,VN-24,VN.QB.DH,Thành phố,City,17.448056,106.5875,2
+Đồng Xoài,VN-58,VN.BP.DX,Thị xã,Township,11.516944,106.839167,3
+Gia Nghĩa,VN-72,VN.DO.GN,Thị xã,Township,11.9985106,107.6765924,3
+Gò Công,VN-46,VN.TG.GC,Thị xã,Township,10.365278,106.673333,4
+Hà Giang,VN-03,VN.HG.HG,Thành phố,City,22.773056,105.044167,3
+Hạ Long,VN-13,VN.QN.HL,Thành phố,City,20.9713036,107.031553,1
+Hà Nội,VN-HN,VN.HI.HI,Thành phố,Municipality|City|Capital,21.0227732,105.801944,0
+Hà Tiên,VN-47,VN.KG.HT,Thị xã,Township,10.381667,104.502778,3
+Hà Tĩnh,VN-23,VN.HT.HT,Thành phố,City,18.355556,105.9,3
+Hải Dương,VN-61,VN.HD.HD,Thành phố,City,20.937222,106.305833,2
+Hải Phòng,VN-HP,VN.HP.HO,Thành phố,Municipality|City,20.8468135,106.663727,1
+Hồ Chí Minh,VN-SG,VN.HC.HC,Thành phố,Municipality|City,10.817471,106.6081318,0
+Hòa Bình,VN-14,VN.HO.HB,Thành phố,City,20.843333,105.322222,3
+Hội An,VN-27,VN.QM.HA,Thành phố,City,15.888889,108.345,3
+Hồng Lĩnh,VN-23,VN.HT.HL,Thị xã,Township,18.534722,105.711111,4
+Huế,VN-26,VN.TT.HE,Thành phố,City,16.454444,107.574722,1
+Hưng Yên,VN-66,VN.HY.HY,Thành phố,City,20.660556,106.052222,3
+Kon Tum,VN-28,VN.KT.KT,Thành phố,City,14.342222,107.967778,3
+Lai Châu,VN-01,VN.LI.LC,Thành phố,City,22.3875,103.406111,3
+Lạng Sơn,VN-09,VN.LS.LS,Thành phố,City,21.855278,106.747222,3
+Lào Cai,VN-02,VN.LO.LC,Thành phố,City,22.418611,103.978611,2
+Long Khánh,VN-39,VN.DN.LK,Thị xã,Township,10.94,107.241389,3
+Long Xuyên,VN-44,VN.AG.LX,Thành phố,City,10.372778,105.425833,2
+Móng Cái,VN-13,VN.QN.MC,Thành phố,City,21.441944,107.919167,3
+Mường Lay,VN-71,VN.DB.ML,Thị xã,Township,22.029722,103.119444,4
+Mỹ Tho,VN-46,VN.TG.MT,Thành phố,City,10.370556,106.364444,1
+Nam Định,VN-67,VN.ND.ND,Thành phố,City,20.418611,106.165,1
+Ngã Bảy,VN-73,VN.HU.NB,Thị xã,Township,9.8119366,105.8157477,3
+Nghĩa Lộ,VN-06,VN.YB.NL,Thị xã,Township,21.599444,104.489444,4
+Nha Trang,VN-34,VN.KH.NT,Thành phố,City,12.261111,109.177778,1
+Ninh Bình,VN-18,VN.NB.NB,Thành phố,City,20.245833,105.973333,2
+Phan Rang-Tháp Chàm,VN-36,VN.NT.PR,Thành phố,City,11.603056,108.976111,2
+Phan Thiết,VN-40,VN.BU.PT,Thành phố,City,10.904444,108.062222,2
+Phủ Lý,VN-63,VN.HM.PL,Thành phố,City,20.538611,105.915278,3
+Phú Thọ,VN-68,VN.PT.PT,Thị xã,Township,21.415,105.229444,3
+Phúc Yên,VN-70,VN.VC.PY,Thị xã,Township,21.315278,105.731667,3
+Pleiku,VN-30,VN.GL.PL,Thành phố,City,13.961667,107.9675,2
+Quảng Ngãi,VN-29,VN.QG.QN,Thành phố,City,15.121389,108.806667,2
+Quảng Trị,VN-25,VN.QT.QT,Thị xã,Township,16.743611,107.188889,4
+Quy Nhơn,VN-31,VN.BD.QN,Thành phố,City,13.7875,109.213333,1
+Rạch Giá,VN-47,VN.KG.RG,Thành phố,City,10.026389,105.105556,2
+Sa Đéc,VN-45,VN.DT.SD,Thành phố,City,10.322778,105.741944,3
+Sầm Sơn,VN-21,VN.TH.SS,Thị xã,Township,19.753056,105.900833,3
+Sóc Trăng,VN-52,VN.ST.ST,Thành phố,City,9.610833,105.983333,3
+Sơn La,VN-05,VN.SL.SL,Thành phố,City,21.344167,103.914444,3
+Sơn Tây,VN-HN,VN.HI.ST,Thành phố,City,21.0975,105.474167,3
+Sông Cầu,VN-32,VN.PY.SC,Thị xã,Township,13.527778,109.210833,4
+Sông Công,VN-69,VN.TY.SC,Thành phố,City,21.487222,105.813056,3
+Tam Điệp,VN-18,VN.NB.TD,Thành phố,City,20.1603744,105.8679663,3
+Tam Kỳ,VN-27,VN.QM.TK,Thành phố,City,15.576944,108.497778,2
+Tân An,VN-41,VN.LA.TA,Thành phố,City,10.526667,106.401667,3
+Tân Châu,VN-44,VN.AG.TC,Thị xã,Township,10.819722,105.188333,4
+Tây Ninh,VN-37,VN.TN.TN,Thành phố,City,11.366389,106.129722,3
+Thái Bình,VN-20,VN.TB.TB,Thành phố,City,20.445833,106.332222,2
+Thái Nguyên,VN-69,VN.TY.TN,Thành phố,City,21.555556,105.807222,1
+Thanh Hóa,VN-21,VN.TH.TH,Thành phố,City,19.807222,105.793611,1
+Thủ Dầu Một,VN-57,VN.BI.TD,Thành phố,City,11.000278,106.648889,2
+Trà Vinh,VN-51,VN.TV.TV,Thành phố,City,9.9525,106.344167,2
+Từ Sơn,VN-56,VN.BN.TS,Thị xã,Township,21.12,105.957222,4
+Tuy Hòa,VN-32,VN.PY.TT,Thành phố,City,13.095,109.263889,2
+Tuyên Quang,VN-07,VN.TQ.TQ,Thành phố,City,21.827778,105.22,3
+Uông Bí,VN-13,VN.QN.UB,Thành phố,City,21.075833,106.751944,2
+Vị Thanh,VN-73,VN.HU.VH,Thành phố,City,9.754167,105.413889,3
+Việt Trì,VN-68,VN.PT.VT,Thành phố,City,21.316944,105.393056,1
+Vinh,VN-22,VN.NA.VI,Thành phố,City,18.685,105.701389,1
+Vĩnh Long,VN-49,VN.VL.VL,Thành phố,City,10.2525,105.935556,3
+Vĩnh Yên,VN-70,VN.VC.VY,Thành phố,City,21.307222,105.5925,2
+Vũng Tàu,VN-43,VN.BV.VT,Thành phố,City,10.402222,107.118056,1
+Yên Bái,VN-06,VN.YB.YB,Thành phố,City,21.741111,104.895,3

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Page Title</title>
+    <title>Gponster - D3 tuts</title>
     <style type="text/css">
         #wrapper {
             padding-top: 35px;
@@ -191,8 +191,7 @@
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src="https://d3js.org/topojson.v1.min.js"></script>
     <script>
-        var width = 960,
-        height = 600;
+        var width = 960, height = 600;
         var active = d3.select(null);
 
         // We create a quantile scale to categorize the values in 5 groups.
@@ -202,11 +201,7 @@
         var quantiles = d3.scale.quantile()
             .range(d3.range(9).map(function (i) { return 'q' + i + '-9'; }));
 
-        //var clr = d3.scale.linear()
-        //    //.range(['beige', 'red']);
-        //    .range(['#FFF7EC', '#7F0000']);
-
-        var svg, g, centered, path, zoom, projection;
+        var svg, g, path, zoom, projection;
 
         $(document).ready(function () {
             // Area, population and population density in 2011 by province
@@ -320,7 +315,6 @@
             svg = d3.select('#map-canvas').append('svg')
                 .attr('width', width)
                 .attr('height', height)
-                // Not process on click event and stop propagation
                 .on('click', stopped, true);
 
             // Append div for tooltip to SVG
@@ -576,31 +570,6 @@
             svg.transition()
                 .duration(750)
                 .call(zoom.translate(translate).scale(scale).event);
-        }
-
-        function starPoints(centerX, centerY, arms, outerRadius, innerRadius) {
-            var results = '';
-
-            var angle = Math.PI / arms;
-
-            for (var i = 0; i < 2 * arms; i++) {
-                // Use outer or inner radius depending on what iteration we are in.
-                var r = (i & 1) == 0 ? outerRadius : innerRadius;
-
-                var currX = centerX + Math.cos(i * angle) * r;
-                var currY = centerY + Math.sin(i * angle) * r;
-
-                // Our first time we simply append the coordinates, subsequet times
-                // we append a ", " to distinguish each coordinate pair.
-                if (i == 0) {
-                    results = currX + ',' + currY;
-                }
-                else {
-                    results += ', ' + currX + ',' + currY;
-                }
-            }
-
-            return results;
         }
     </script>
 </head>

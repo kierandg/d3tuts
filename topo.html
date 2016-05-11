@@ -334,7 +334,7 @@
         var quantiles = d3.scale.quantile()
             .range(d3.range(9).map(function (i) { return 'q' + i + '-9'; }));
 
-        var svg, g, path, zoom, projection, tooltip, scatterplot;
+        var svg, g, path, zoom, projection, tooltip;
 
         $(document).ready(function () {
             // Area, population and population density in 2011 by province
@@ -464,16 +464,16 @@
         };
 
         function drawScatterplot(data) {
-            var margin = { top: 20, right: 10, bottom: 80, left: 40 };
-            var w = 270 - margin.left - margin.right;
-            var h = 270 - margin.top - margin.bottom;
+            var m = { top: 20, right: 10, bottom: 80, left: 40 };
+            var w = 270 - m.left - m.right;
+            var h = 270 - m.top - m.bottom;
 
             var scatter = d3.select('.scatterplot-wrapper')
 				.append('svg')
-				.attr('width', w + margin.left + margin.right)
-				.attr('height', h + margin.top + margin.bottom)
+				.attr('width', w + m.left + m.right)
+				.attr('height', h + m.top + m.bottom)
 			    .append('g')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                .attr('transform', 'translate(' + m.left + ',' + m.top + ')');
 
             /// Population (x)
             var xscale = d3.scale.linear()
@@ -523,14 +523,14 @@
                 .attr('class', 'x label')
                 .attr('text-anchor', 'middle')
                 .attr('x', w - w / 2)
-                .attr('y', h + margin.bottom / 2)
+                .attr('y', h + m.bottom / 2)
                 .text('Population');
 
             // Add label to Y axis
             scatter.append('text')
                 .attr('class', 'y label')
                 .attr('text-anchor', 'middle')
-                .attr('y', -margin.left + 5)
+                .attr('y', -m.left + 5)
                 .attr('x', 0 - (h / 2))
                 .attr('dy', '1em')
                 .attr('transform', 'rotate(-90)')

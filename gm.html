@@ -1,0 +1,657 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>Vietnam states</title>
+    <style type="text/css">
+        #wrapper {
+            padding-top: 15px;
+        }
+
+        .bar-label {
+            float: left;
+            margin-top: 5px;
+            line-height: 12px;
+            font-size: 12px;
+            font-family: 'Helvetica';
+        }
+
+            .bar-label.second {
+                float: right;
+            }
+
+        table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+            padding: 0px;
+        }
+
+        th {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        th {
+            font-size: 16px;
+            font-family: sans-serif;
+            font-weight: normal;
+            text-align: left;
+        }
+
+            th.name {
+                color: #E7BA52;
+            }
+
+            th.area {
+                color: #FC9E27;
+            }
+
+            th.population {
+                color: #3A7FA3;
+            }
+
+            th.density {
+                color: #B5CF6B;
+            }
+
+            th.capital {
+                color: #D6616B;
+            }
+
+        th, td {
+            color: #555;
+        }
+
+        .h2, h2 {
+            font-size: 30px;
+        }
+
+        .h1, .h2, .h3, h1, h2, h3 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .legend-wrapper {
+            position: fixed;
+            z-index: 2;
+            left: 15px;
+            bottom: 150px;
+            width: 270px;
+            text-align: center;
+        }
+
+            .legend-wrapper h1 {
+                font: 22px 'oswaldregular';
+            }
+
+        #map-canvas {
+            height: 600px;
+            width: 900px;
+            margin-left: 290px;
+        }
+
+        #info {
+            height: 90px;
+        }
+
+        #header-info {
+            margin-left: 290px;
+        }
+
+        #feature-info {
+            width: 650px;
+        }
+
+        #loading {
+            width: 50px;
+            margin: 0 auto;
+        }
+
+        .states {
+            fill: #ccc;
+            stroke: #fff;
+            stroke-linejoin: round;
+        }
+
+        .feature, .legend {
+            cursor: pointer;
+        }
+
+        /* On mouse hover, lighten state color */
+        path:hover {
+            fill-opacity: .7;
+        }
+
+        .active .feature {
+            fill: yellow;
+            opacity: 0.75;
+        }
+
+        .city-label {
+            font: 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+            pointer-events: none;
+            fill: #444;
+            fill-opacity: .75;
+        }
+
+        .state-label {
+            fill: #777;
+            fill-opacity: .5;
+            font-size: 10px;
+            font-weight: 300;
+        }
+
+        /* http://colorbrewer2.org/ */
+        .q0-9 {
+            fill: #F7FCF0;
+        }
+
+        .q1-9 {
+            fill: #E0F3DB;
+        }
+
+        .q2-9 {
+            fill: #CCEBC5;
+        }
+
+        .q3-9 {
+            fill: #A8DDB5;
+        }
+
+        .q4-9 {
+            /* lighten #7BCCC4 */
+            fill: #BBF3FF;
+        }
+
+        .q5-9 {
+            /* lighten #4EB3D3 */
+            fill: #A1D9FF;
+        }
+
+        .q6-9 {
+            /* lighten #2B8CBE */
+            fill: #87BFFF;
+        }
+
+        .q7-9 {
+            /* lighten #0868AC */
+            fill: #6EA6E7;
+        }
+
+        .q8-9 {
+            /* lighten #084081 */
+            fill: #558DCE;
+        }
+
+        .boundary {
+            fill: none;
+            stroke: #fff;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .overlay {
+            fill: none;
+            pointer-events: all;
+        }
+
+        .fa-spinner {
+            -webkit-animation: spin 1300ms infinite linear;
+            -moz-animation: spin 1300ms infinite linear;
+            -ms-animation: spin 1300ms infinite linear;
+            -o-animation: spin 1300ms infinite linear;
+            animation: spin 1300ms infinite linear;
+            font-size: 41px;
+            text-decoration: none;
+            color: #C0C0C0;
+        }
+
+        .hidden {
+            display: none;
+            visibility: hidden;
+        }
+
+        div.tooltip {
+            position: absolute;
+            text-align: center;
+            border-radius: 4px;
+            pointer-events: none;
+            font-family: arial,helvetica,sans-serif;
+            font-size: 12px;
+            border: solid 1px #ccc;
+            background: rgba(255,255,255,.75);
+            padding: 4px 10px;
+            position: absolute;
+            z-index: 1000;
+            box-shadow: 0 0 8px rgba(0,0,0,.2);
+            pointer-events: none;
+            width: 100px;
+            margin-left: -55px;
+        }
+
+        @-webkit-keyframes spin {
+            to {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @-moz-keyframes spin {
+            to {
+                -moz-transform: rotate(360deg);
+            }
+        }
+
+        @-ms-keyframes spin {
+            to {
+                -ms-transform: rotate(360deg);
+            }
+        }
+
+        @-o-keyframes spin {
+            to {
+                -o-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="https://d3js.org/topojson.v1.min.js"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization,places,geometry&key=AIzaSyDEs_f9851pMMMKuusSpwovQjoBHVkOk5E&language=vi"></script>
+    <script>
+        if (!google.maps.Polygon.prototype.getBounds) {
+            google.maps.Polygon.prototype.getBounds = function (latLng) {
+                var bounds = new google.maps.LatLngBounds();
+                var paths = this.getPaths();
+                var path;
+
+                for (var p = 0; p < paths.getLength() ; p++) {
+                    path = paths.getAt(p);
+                    for (var i = 0; i < path.getLength() ; i++) {
+                        bounds.extend(path.getAt(i));
+                    }
+                }
+
+                return bounds;
+            }
+        }
+
+        if (!google.maps.Polyline.prototype.getBounds) {
+            google.maps.Polyline.prototype.getBounds = function (latLng) {
+                var bounds = new google.maps.LatLngBounds();
+                var path = this.getPath();
+                for (var i = 0; i < path.getLength() ; i++) {
+                    bounds.extend(path.getAt(i));
+                }
+                return bounds;
+            }
+        }
+
+        var _gp = {
+            map: null,
+            infoWindow: new google.maps.InfoWindow,
+
+            // Strict bounds, by Geocoder (sw, ne)
+            /*
+            var geocoder = new google.maps.Geocoder();
+            geocoder.geocode({
+                'address' : 'Viet Nam'
+            }, function (results, status) {
+                if (status == google.maps.GeocoderStatus.OK) {
+                    var viewport = results[0].geometry.viewport;
+                    console.log(viewport);
+                }
+            });
+            */
+            strictBounds: new google.maps.LatLngBounds(
+                    new google.maps.LatLng(8.412729, 102.14441),
+                    new google.maps.LatLng(23.393395, 109.468977)),
+
+            initialize: function (options) {
+                var self = this;
+
+                self.tooltip = d3.select('body').append('div')
+				  .attr('class', 'tooltip')
+				  .style('opacity', 0);
+
+                var range = ['#F7FCF0', '#E0F3DB', '#CCEBC5', '#A8DDB5',
+						'#BBF3FF', '#A1D9FF', '#87BFFF', '#6EA6E7', '#558DCE'];
+                self.quantiles = d3.scale.quantile()
+					.range(range);
+
+                var legend = d3.select('.bar-legend').append('svg')
+					.attr('width', 240)
+					.attr('height', 12);
+
+                legend.selectAll('rect')
+					.data(d3.range(9).map(function (i) { return 'q' + i + '-9'; }))
+					.enter().append('rect')
+					.attr('width', 240 / 9)
+					.attr('height', 12)
+					.attr('x', function (d, i) {
+					    return (240 / 9) * i;
+					})
+					.attr('class', function (d, i) {
+					    return 'legend ' + d;
+					}).on('mouseover', function (type) {
+					    d3.selectAll('.legend')
+							.style('opacity', 0.3);
+
+					    d3.select(this)
+							.style('opacity', 1);
+
+					    //d3.selectAll('.bubble')
+					    //.style('opacity', 0.1)
+					    //.filter(function(d) { return d['team86'] == type; })
+					    //.style('opacity', 1);
+					})
+					.on('mouseout', function (type) {
+					    d3.selectAll('.legend')
+							.style('opacity', 1);
+					    d3.selectAll('.state')
+							.style('feature', 1);
+					});
+
+                var mapOptions = {
+                    center: new google.maps.LatLng(16.553160650957434, 106.34899620666437),
+                    zoom: 7,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                };
+
+                // This is the minimum zoom level that we'll allow
+                var minZoomLevel = 5;
+
+                self.map = new google.maps.Map(document.getElementById('map-canvas'),
+						mapOptions);
+
+                // Listen for the dragend event
+                google.maps.event.addListener(self.map, 'dragend', function () {
+
+                    var center = self.map.getCenter();
+                    var lng = center.lng(),
+						lat = center.lat();
+
+                    if (self.strictBounds.contains(center)) {
+                        return;
+                    }
+
+                    // We're out of bounds - Move the map back within the bounds
+                    var maxX = self.strictBounds.getNorthEast().lng(),
+						minX = self.strictBounds.getSouthWest().lng(),
+						maxY = self.strictBounds.getNorthEast().lat(),
+						minY = self.strictBounds.getSouthWest().lat();
+
+                    if (lng < minX) {
+                        lng = minX;
+                    }
+
+                    if (lng > maxX) {
+                        lng = maxX;
+                    }
+
+                    if (lat < minY) {
+                        lat = minY;
+                    }
+
+                    if (lat > maxY) {
+                        lat = maxY;
+                    }
+
+                    self.map.setCenter(new google.maps.LatLng(lat, lng));
+                });
+
+                // Limit the zoom level
+                google.maps.event.addListener(self.map, 'zoom_changed', function () {
+                    if (self.map.getZoom() < minZoomLevel) {
+                        self.map.setZoom(minZoomLevel);
+                    }
+                });
+            },
+
+            load: function (options) {
+                var self = this;
+
+                $('#loading').removeClass('hidden');
+
+                // Area, population and population density in 2011 by province
+                // get from https://www.gso.gov.vn
+                // Average population (Thous. pers.)/Area (Km2)/Population density (Person/km2)
+                // Load in popuplation data with D3 (or jQuery)
+                d3.csv('vn-population-2011.csv', function (error, rows) {
+                    if (error) {
+                        return console.warn(error);
+                    }
+
+                    self.loadTopoJson(rows);
+                });
+            },
+
+            loadTopoJson: function (data) {
+                var self = this;
+
+                // @see http://www.gadm.org/
+                // GADM is a spatial database of the location of the world's
+                // administrative areas (or adminstrative boundaries) for use in GIS and similar software.
+                // @see http://mapshaper.org/ for simplify
+                // A tool for topologically aware shape simplification. Reads and
+                // writes Shapefile, GeoJSON and TopoJSON formats.
+                d3.json('vn-states.json', function (error, json) {
+
+                    if (error) {
+                        return console.warn(error);
+                    }
+
+                    $('#loading').addClass('hidden');
+
+                    // While our data can be stored more efficiently in TopoJSON,
+                    // we must convert back to GeoJSON for display.
+                    var feature = topojson.feature(json, json.objects.states);
+                    var features = feature.features;
+
+                    // Merge the ag. data and GeoJSON
+                    // Loop through once for each ag. data value
+                    for (var i = 0; i < data.length; i++) {
+                        // Grab state name
+                        var dataIso = data[i].iso;
+
+                        // Grab data value, and convert from string to float
+                        var density = parseFloat(data[i].density);
+                        var population = parseFloat(data[i].population);
+                        var area = parseFloat(data[i].area);
+
+                        //Find the corresponding state inside the GeoJSON
+                        for (var j = 0; j < features.length; j++) {
+
+                            var jsonIso = features[j].properties.iso;
+                            if (dataIso == jsonIso) {
+                                // Copy the data value into the JSON
+                                features[j].properties.density = density;
+                                features[j].properties.population = population;
+                                features[j].properties.area = area;
+
+                                // Stop looking through the JSON
+                                break;
+                            }
+                        }
+                    }
+
+                    // Set the domain of the values
+                    self.quantiles.domain(features.map(function (d) {
+                        return d.properties.density;
+                    }));
+
+                    self.drawMap(json, feature);
+                });
+            },
+            drawMap: function (json, feature) {
+                var self = this;
+
+                $('#loading').addClass('hidden');
+
+                var mess = topojson.mesh(json, json.objects.states, function (a, b) {
+                    return a !== b;
+                });
+
+                // Add mess boundary to feature collection
+                feature.features.push({
+                    type: 'Feature',
+                    geometry: mess,
+                    properties: {
+                        boundary: true
+                    }
+                });
+
+                // OK render features
+                self.map.data.addGeoJson(feature);
+
+                self.map.data.setStyle(function (feature) {
+
+                    if (feature.getProperty('boundary')) {
+                        return {
+                            strokeColor: '#003568',
+                            strokeOpacity: 0.5,
+                            strokeWeight: 1,
+                            fillOpacity: 0
+                        };
+                    }
+
+                    var density = feature.getProperty('density')
+                    var color = self.quantiles(density);
+
+                    return {
+                        strokeOpacity: 0,
+                        fillColor: color,
+                        fillOpacity: .75
+                    };
+                });
+
+                // When the user hovers, tempt them to click by outlining the letters.
+                // Call revertStyle() to remove all overrides. This will use the style rules
+                // defined in the function passed to setStyle()
+                self.map.data.addListener('mouseover', function (event) {
+                    var feature = event.feature;
+
+                    $('#feature-info').find('tr:gt(0)').remove();
+                    if (feature.getProperty('boundary')) {
+                        return;
+                    }
+
+                    self.map.data.revertStyle();
+                    self.map.data.overrideStyle(event.feature, {
+                        fillOpacity: .35,
+                        fillColor: '#FFFF00',
+                        strokeColor: '#039BE5',
+                    });
+
+                    var name = feature.getProperty('name');
+                    var density = feature.getProperty('density');
+                    var population = feature.getProperty('population');
+                    var area = feature.getProperty('area');
+                    var capital = feature.getProperty('capital');
+
+                    var html = '<tr><td>' + name + '</td>' +
+						'<td>' + population.toFixed(2) + '</td>' +
+						'<td>' + area.toFixed(2) + '</td>' +
+						'<td>' + density.toFixed(2) + '</td>' +
+						'<td>' + capital + '</td></tr>';
+                    $('#feature-info tr:last').after(html);
+
+                    var pos = self.latLngToPoint(event.latLng);
+                    self.tooltip.transition().duration(300)
+						.style('opacity', 1);
+
+                    var offset = $('#map-canvas').offset();
+                    self.tooltip.text(name)
+						.style('left', (offset.left + pos.x) + 'px')
+						.style('top', (offset.top + pos.y - 50) + 'px');
+                });
+
+                self.map.data.addListener('mouseout', function (event) {
+                    var feature = event.feature;
+
+                    self.tooltip.transition().duration(300)
+						.style('opacity', 0);
+
+                    $('#feature-info').find('tr:gt(0)').remove();
+                    if (feature.getProperty('boundary')) {
+                        return;
+                    }
+
+                    self.map.data.revertStyle();
+                });
+            },
+            latLngToPoint: function (latLng) {
+                var self = this;
+
+                var projection = self.map.getProjection();
+                var bounds = self.map.getBounds();
+                var topRight = projection
+					.fromLatLngToPoint(bounds.getNorthEast());
+                var bottomLeft = projection
+					.fromLatLngToPoint(bounds.getSouthWest());
+
+                var scale = Math.pow(2, self.map.getZoom());
+                var worldPoint = projection
+					.fromLatLngToPoint(latLng);
+
+                return {
+                    x: (worldPoint.x - bottomLeft.x) * scale,
+                    y: (worldPoint.y - topRight.y) * scale
+                };
+            }
+        };
+
+        function initialize() {
+
+            // Initialize
+            _gp.initialize();
+            _gp.load();
+        };
+
+        google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+</head>
+<body>
+    <div id="wrapper">
+        <div class="legend-wrapper">
+            <h1>Population density</h1>
+            <div class="index-level-bar">
+                <div class="bar-legend"></div>
+                <div class="bar-label">Lower denisty</div>
+                <div class="bar-label second">Higher denisty</div>
+                <div style="clear: both;"></div>
+            </div>
+        </div>
+        <div id="info">
+            <div id="header-info">
+                <span>Area, population and population density in 2011 by province (https://www.gso.gov.vn)</span>
+                <table id="feature-info">
+                    <tbody>
+                        <tr>
+                            <th class="name" style="width:25%;">Name</th>
+                            <th class="population" style="width:20%;">Population</th>
+                            <th class="area" style="width:15%;">Area</th>
+                            <th class="density" style="width:15%;">Density</th>
+                            <th class="capital" style="width:25%;">Capital</th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="loading" class="hidden"><a class="fa fa-spinner"></a></div>
+        </div>
+        <div id="map-canvas"></div>
+    </div>
+</body>
+</html>

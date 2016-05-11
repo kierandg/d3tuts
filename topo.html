@@ -4,18 +4,140 @@
     <title>Gponster - D3 tuts</title>
     <style type="text/css">
         #wrapper {
-            padding-top: 35px;
+            padding-top: 15px;
         }
 
+        .bar-label {
+            float: left;
+            margin-top: 5px;
+            line-height: 12px;
+            font-size: 12px;
+            font-family: 'Helvetica';
+        }
+
+            .bar-label.second {
+                float: right;
+            }
+
+        table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+            padding: 0px;
+        }
+
+        th {
+            font-size: 16px;
+            font-family: sans-serif;
+            font-weight: normal;
+            text-align: left;
+        }
+
+            th.name {
+                color: #E7BA52;
+            }
+
+            th.area {
+                color: #FC9E27;
+            }
+
+            th.population {
+                color: #3A7FA3;
+            }
+
+            th.density {
+                color: #B5CF6B;
+            }
+
+            th.capital {
+                color: #D6616B;
+            }
+
+        th, td {
+            color: #555;
+        }
+
+        .h2, h2 {
+            font-size: 30px;
+        }
+
+        .h1, .h2, .h3, h1, h2, h3 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .scatterplot-wrapper {
+            position: fixed;
+            z-index: 2;
+            left: 15px;
+            bottom: 300px;
+            width: 270px;
+            text-align: center;
+        }
+
+        .axis path, .axis line {
+            fill: none;
+            stroke-width: 1px;
+            stroke: #e7e7e7;
+            stroke-opacity: .5;
+            shape-rendering: crispEdges;
+        }
+
+        .axis text {
+            line-height: 12px;
+            font-size: 12px;
+            font-family: 'Helvetica';
+            fill: #666;
+        }
+
+        .label {
+            line-height: 12px;
+            font-size: 12px;
+            font-family: 'Helvetica';
+        }
+
+        .scatterplot-wrapper circle {
+            fill-opacity: .75;
+        }
+
+            .scatterplot-wrapper circle:hover {
+                fill-opacity: 1;
+            }
+
+        .legend-wrapper {
+            position: fixed;
+            z-index: 2;
+            left: 15px;
+            bottom: 150px;
+            width: 270px;
+            text-align: center;
+        }
+
+            .legend-wrapper h1 {
+                font: 22px 'oswaldregular';
+            }
+
         #map-canvas {
-            height: 600px;
-            width: 1000px;
-            margin: 0 auto;
+            width: 900px;
+            margin-left: 290px;
+        }
+
+        #info {
+            height: 90px;
+        }
+
+        #header-info {
+            margin-left: 290px;
+        }
+
+        #feature-info {
+            width: 650px;
         }
 
         #loading {
-            padding-top: 15px;
-            width: 200px;
+            width: 50px;
             margin: 0 auto;
         }
 
@@ -23,6 +145,11 @@
         .feature:hover {
             fill: yellow;
             fill-opacity: .35;
+        }
+
+        .bubble.highlight {
+            stroke: #3A7FA3;
+            fill-opacity: .75;
         }
 
         .active .feature {
@@ -45,7 +172,7 @@
             pointer-events: none;
         }
 
-        .feature {
+        .feature, .legend {
             cursor: pointer;
         }
 
@@ -146,14 +273,19 @@
         div.tooltip {
             position: absolute;
             text-align: center;
-            width: 60px;
-            height: 28px;
-            padding: 2px;
-            font: 12px sans-serif;
-            background: lightsteelblue;
-            border: 0px;
-            border-radius: 8px;
+            border-radius: 4px;
             pointer-events: none;
+            font-family: arial,helvetica,sans-serif;
+            font-size: 12px;
+            border: solid 1px #ccc;
+            background: rgba(255,255,255,.75);
+            padding: 4px 10px;
+            position: absolute;
+            z-index: 1000;
+            box-shadow: 0 0 8px rgba(0,0,0,.2);
+            pointer-events: none;
+            width: 100px;
+            margin-left: -55px;
         }
 
         @-webkit-keyframes spin {
@@ -191,8 +323,9 @@
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src="https://d3js.org/topojson.v1.min.js"></script>
     <script>
-        var width = 960, height = 600;
+        var width = 960, height = 700;
         var active = d3.select(null);
+        var zoomScale, zoomTranslate;
 
         // We create a quantile scale to categorize the values in 5 groups.
         // The domain is static and has a minimum/maximum of population/density.
@@ -201,16 +334,20 @@
         var quantiles = d3.scale.quantile()
             .range(d3.range(9).map(function (i) { return 'q' + i + '-9'; }));
 
-        var svg, g, path, zoom, projection;
+        var svg, g, path, zoom, projection, tooltip, scatterplot;
 
         $(document).ready(function () {
             // Area, population and population density in 2011 by province
             // get from https://www.gso.gov.vn
             // Average population (Thous. pers.)/Area (Km2)/Population density (Person/km2)
-
             // Load in popuplation data with D3 (or jQuery)
-
             d3.select('#loading').classed('hidden', false);
+
+            tooltip = d3.select('body').append('div')
+                .attr('class', 'tooltip')
+                .style('opacity', 0)
+                .on('click', stopped, true);
+
             d3.csv('vn-population-2011.csv', function (error, rows) {
                 if (error) {
                     return console.warn(error);
@@ -248,6 +385,7 @@
                     // Grab data value, and convert from string to float
                     var density = parseFloat(data[i].density);
                     var population = parseFloat(data[i].population);
+                    var area = parseFloat(data[i].area);
 
                     //Find the corresponding state inside the GeoJSON
                     for (var j = 0; j < features.length; j++) {
@@ -257,6 +395,7 @@
                             // Copy the data value into the JSON
                             features[j].properties.density = density;
                             features[j].properties.population = population;
+                            features[j].properties.area = area;
 
                             // Stop looking through the JSON
                             break;
@@ -269,8 +408,163 @@
                     return d.properties.density;
                 }));
 
+                var legend = d3.select('.bar-legend').append('svg')
+                    .attr('width', 240)
+                    .attr('height', 12);
+
+                legend.selectAll('rect')
+                    .data(d3.range(9).map(function (i) { return 'q' + i + '-9'; }))
+                    .enter().append('rect')
+                    .attr('width', 240 / 9)
+                    .attr('height', 12)
+                    .attr('x', function (d, i) {
+                        return (240 / 9) * i;
+                    })
+                    .attr('data-level', function (d, i) {
+                        return i;
+                    })
+                    .attr('class', function (d) {
+                        return 'legend ' + d;
+                    }).on('mouseover', function (type) {
+                        d3.selectAll('.legend')
+                            .style('opacity', .3);
+                        d3.select(this)
+                            .style('opacity', 1);
+
+                        var level = d3.select(this).attr('data-level');
+
+                        d3.selectAll('.feature')
+                            .style('opacity', .1)
+                            .filter('.q' + level + '-9')
+                            .style('opacity', 1);
+
+                        d3.selectAll('.bubble')
+                            .style('fill-opacity', .1)
+                            .filter('.q' + level + '-9')
+                            .style('fill-opacity', .75);
+
+                        d3.selectAll('.state-boundary')
+                            .style('stroke-opacity', .3);
+                    })
+                    .on('mouseout', function (type) {
+                        d3.selectAll('.legend')
+                            .style('opacity', 1);
+                        d3.selectAll('.feature')
+                            .style('opacity', 1);
+                        d3.selectAll('.bubble')
+                            .style('fill-opacity', .75);
+
+                        d3.selectAll('.state-boundary')
+                            .style('stroke-opacity', 1);
+                    });
+
                 drawMap(json, features);
+                drawScatterplot(features);
             });
+        };
+
+        function drawScatterplot(data) {
+            var margin = { top: 20, right: 10, bottom: 80, left: 40 };
+            var w = 270 - margin.left - margin.right;
+            var h = 270 - margin.top - margin.bottom;
+
+            var scatter = d3.select('.scatterplot-wrapper')
+				.append('svg')
+				.attr('width', w + margin.left + margin.right)
+				.attr('height', h + margin.top + margin.bottom)
+			    .append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+            /// Population (x)
+            var xscale = d3.scale.linear()
+                .domain([d3.min(data, function (d) { return d.properties.population; }),
+                    d3.max(data, function (d) { return d.properties.population; })])
+                .range([0, w]);
+
+            // Area (y)
+            var yscale = d3.scale.linear()
+                .domain([d3.min(data, function (d) { return d.properties.area / 1000; }),
+                    d3.max(data, function (d) { return d.properties.area / 1000; })])
+                .range([h, 0]);
+
+            var rscale = d3.scale.sqrt()
+                .domain([d3.min(data, function (d) { return d.properties.density; }),
+                    d3.max(data, function (d) { return d.properties.density; })])
+                .range([3, 15]);
+
+            // Define X axis
+            var xaxis = d3.svg.axis()
+                .scale(xscale)
+                .orient('bottom')
+                .tickSize(-h)
+                .tickFormat(d3.format('s'));
+
+            // Define Y axis
+            var yaxis = d3.svg.axis()
+                .scale(yscale)
+                .orient('left')
+                .ticks(6)
+                .tickSize(-w);
+
+            // Create X axis
+            scatter.append('g')
+                .attr('class', 'x-axis axis')
+                .attr('transform', 'translate(0,' + (h) + ')')
+                .call(xaxis);
+
+            // Create Y axis
+            scatter.append('g')
+                .attr('class', 'y-axis axis')
+                .attr('transform', 'translate(' + 0 + ',0)')
+                .call(yaxis);
+
+            // Add label to X axis
+            scatter.append('text')
+                .attr('class', 'x label')
+                .attr('text-anchor', 'middle')
+                .attr('x', w - w / 2)
+                .attr('y', h + margin.bottom / 2)
+                .text('Population');
+
+            // Add label to Y axis
+            scatter.append('text')
+                .attr('class', 'y label')
+                .attr('text-anchor', 'middle')
+                .attr('y', -margin.left + 5)
+                .attr('x', 0 - (h / 2))
+                .attr('dy', '1em')
+                .attr('transform', 'rotate(-90)')
+                .text('Area (1000 km2)');
+
+            var clr = d3.scale.category20();
+
+            var circles = scatter.selectAll('circle')
+                .data(data).enter()
+                .append('circle')
+                .attr('cx', function (d) {
+                    return xscale(d.properties.population);
+                })
+                .attr('cy', function (d) {
+                    return yscale(d.properties.area / 1000);
+                })
+                .attr('r', function (d) {
+                    return rscale(d.properties.density);
+                })
+                .attr('class', function (d) {
+                    return 'bubble state-' + d.properties.iso + ' ' +
+                        quantiles(d.properties.density);
+                })
+                .on('mouseover', function (d) {
+                    tooltip.transition().duration(300)
+						.style('opacity', 1);
+
+                    tooltip.text(d.properties.name)
+						.style('left', d3.event.pageX + 'px')
+						.style('top', (d3.event.pageY - 50) + 'px');
+                }).on('mouseout', function (d) {
+                    tooltip.transition().duration(300)
+						.style('opacity', 0);
+                });
         }
 
         function drawMap(json, features) {
@@ -278,8 +572,8 @@
             // Create a first guess for the projection
             //var center = d3.geo.centroid(json);
             var center = [106.34899620666437, 16.553160650957434];
-            var scale = 4000;
-            var offset = [width / 2, height / 2 - 300];
+            var scale = 2500;
+            var offset = [width / 2, height / 2 - 50];
 
             // The projection function takes a location [longitude, latitude]
             // and returns a Cartesian coordinates [x,y] (in pixels).
@@ -292,8 +586,8 @@
             // anything larger will expand it.
             //
             // Add a scale() method with 800 to our projection in order to shrink things down a bit
-            // var projection = d3.geo.albersUsa()
-            //                      .translate([w/2, h/2]).scale([800]);
+            //var projection = d3.geo.albersUsa()
+            //     .translate([w / 2, h / 2]).scale([800]);
             projection = d3.geo.mercator()
                 .translate(offset)
                 .scale([scale])
@@ -317,22 +611,21 @@
                 .attr('height', height)
                 .on('click', stopped, true);
 
-            // Append div for tooltip to SVG
-            var div = d3.select('body')
-                .append('div')
-                .attr('class', 'tooltip')
-                .style('opacity', 0);
-
             svg.append('rect')
                 .attr('class', 'overlay')
                 .attr('width', width)
-                .attr('height', height);
+                .attr('height', height)
+                .on('click', function () {
+                    zoomScale = 1;
+                    zoomTranslate = [0, 0];
+
+                    reset();
+                }, true);
 
             g = svg.append('g');
 
             // Create g before call zoom
-            svg
-                .call(zoom)                 // delete this line to disable free zooming
+            svg.call(zoom)                 // delete this line to disable free zooming
                 .call(zoom.event)
                 .on('dblclick.zoom', null);
 
@@ -342,13 +635,55 @@
             var boundary = g.append('g')
                 .attr('class', 'boundary');
 
-            g
-                .attr('class', 'states')
+            g.attr('class', 'states')
                 .selectAll('path')          // select all the current path nodes
                 .data(features)             // bind these to the features array in json
                 .enter().append('g')        // if not enough elements create a new group
                 .attr('class', function (d) {
                     return 'state state-' + d.properties.iso;
+                })
+                .on('mouseover', function (d) {
+                    //---------------------------------------------------------
+                    // Tooltip
+                    //---------------------------------------------------------
+                    tooltip.transition().duration(300)
+						.style('opacity', 1);
+
+                    tooltip.text(d.properties.name)
+						.style('left', d3.event.pageX + 'px')
+						.style('top', (d3.event.pageY - 50) + 'px');
+                    //---------------------------------------------------------
+
+                    //---------------------------------------------------------
+                    // Feature info
+                    //---------------------------------------------------------
+                    $('#feature-info').find('tr:gt(0)').remove();
+
+                    var html = '<tr><td>' + d.properties.name + '</td>' +
+                        '<td>' + d.properties.population.toFixed(2) + '</td>' +
+                        '<td>' + d.properties.area.toFixed(2) + '</td>' +
+                        '<td>' + d.properties.density.toFixed(2) + '</td>' +
+                        '<td>' + d.properties.capital + '</td></tr>';
+                    $('#feature-info tr:last').after(html);
+                    //---------------------------------------------------------
+
+                    //---------------------------------------------------------
+                    // Bubble
+                    //---------------------------------------------------------
+                    d3.selectAll('.bubble')
+                        .style('fill-opacity', .1)
+                        .filter('.state-' + d.properties.iso)
+                        .classed('highlight', true);
+                })
+                .on('mouseout', function (d) {
+                    tooltip.transition().duration(300)
+						.style('opacity', 0);
+
+                    $('#feature-info').find('tr:gt(0)').remove();
+
+                    d3.selectAll('.bubble')
+                        .style('fill-opacity', .75)
+                        .classed('highlight', false);
                 })
                 .on('click', clicked)
                 .append('path')
@@ -546,9 +881,12 @@
             active.classed('active', false);
             active = d3.select(null);
 
+            zoomScale = zoomScale || 1;
+            zoomTranslate = zoomTranslate || [0, 0];
+
             svg.transition()
                 .duration(750)
-                .call(zoom.translate([0, 0]).scale(1).event);
+                .call(zoom.translate(zoomTranslate).scale(zoomScale).event);
         }
 
         function clicked(d) {
@@ -558,6 +896,10 @@
 
             active.classed('active', false);
             active = d3.select(this).classed('active', true);
+
+            // Save current zoom and translate
+            zoomScale = zoom.scale();
+            zoomTranslate = zoom.translate();
 
             var bounds = path.bounds(d),
                 dx = bounds[1][0] - bounds[0][0],
@@ -575,8 +917,34 @@
 </head>
 <body>
     <div id="wrapper">
+        <div class="scatterplot-wrapper"></div>
+        <div class="legend-wrapper">
+            <h1>Population density</h1>
+            <div class="index-level-bar">
+                <div class="bar-legend"></div>
+                <div class="bar-label">Lower denisty</div>
+                <div class="bar-label second">Higher denisty</div>
+                <div style="clear: both;"></div>
+            </div>
+        </div>
+        <div id="info">
+            <div id="header-info">
+                <span>Area, population and population density in 2011 by province (https://www.gso.gov.vn)</span>
+                <table id="feature-info">
+                    <tbody>
+                        <tr>
+                            <th class="name" style="width:25%;">Name</th>
+                            <th class="population" style="width:20%;">Population</th>
+                            <th class="area" style="width:15%;">Area</th>
+                            <th class="density" style="width:15%;">Density</th>
+                            <th class="capital" style="width:25%;">Capital</th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="loading" class="hidden"><a class="fa fa-spinner"></a></div>
+        </div>
         <div id="map-canvas"></div>
-        <div id="loading" class="hidden"><a class="fa fa-spinner"></a></div>
     </div>
 </body>
 </html>

@@ -1,0 +1,694 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>Vietnam states</title>
+    <style type="text/css">
+        #wrapper {
+            padding-top: 35px;
+        }
+
+        #map-canvas {
+            height: 600px;
+            width: 1000px;
+            margin: 0 auto;
+        }
+
+        #loading {
+            padding-top: 15px;
+            width: 200px;
+            margin: 0 auto;
+        }
+
+        .fa-spinner {
+            -webkit-animation: spin 1300ms infinite linear;
+            -moz-animation: spin 1300ms infinite linear;
+            -ms-animation: spin 1300ms infinite linear;
+            -o-animation: spin 1300ms infinite linear;
+            animation: spin 1300ms infinite linear;
+            font-size: 41px;
+            text-decoration: none;
+            color: #C0C0C0;
+        }
+
+        .hidden {
+            display: none;
+            visibility: hidden;
+        }
+
+        @-webkit-keyframes spin {
+            to {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @-moz-keyframes spin {
+            to {
+                -moz-transform: rotate(360deg);
+            }
+        }
+
+        @-ms-keyframes spin {
+            to {
+                -ms-transform: rotate(360deg);
+            }
+        }
+
+        @-o-keyframes spin {
+            to {
+                -o-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization,places,geometry&key=AIzaSyDEs_f9851pMMMKuusSpwovQjoBHVkOk5E&language=vi"></script>
+
+    <script type="text/javascript">
+
+        if (!google.maps.Polygon.prototype.getBounds) {
+            google.maps.Polygon.prototype.getBounds = function (latLng) {
+                var bounds = new google.maps.LatLngBounds();
+                var paths = this.getPaths();
+                var path;
+
+                for (var p = 0; p < paths.getLength() ; p++) {
+                    path = paths.getAt(p);
+                    for (var i = 0; i < path.getLength() ; i++) {
+                        bounds.extend(path.getAt(i));
+                    }
+                }
+
+                return bounds;
+            }
+        }
+
+        if (!google.maps.Polyline.prototype.getBounds) {
+            google.maps.Polyline.prototype.getBounds = function (latLng) {
+                var bounds = new google.maps.LatLngBounds();
+                var path = this.getPath();
+                for (var i = 0; i < path.getLength() ; i++) {
+                    bounds.extend(path.getAt(i));
+                }
+                return bounds;
+            }
+        }
+
+        var _pgm = {
+            map: null,
+            loading: {},
+            loaded: {},
+            infoWindow: new google.maps.InfoWindow,
+            highlight: {
+                fillColor: '#FFFF00',
+                strokeColor: '#039BE5',
+                fillOpacity: 0.75,
+                strokeWidth: 10
+            },
+            lineHighlight: {
+                strokeColor: '#039BE5',
+                strokeWidth: 10
+            },
+
+            performance: {},
+            placemarks: {},
+            regions: {
+                '1': {
+                    id: [1],
+                    states: ['VN-01', 'VN-02', 'VN-05', 'VN-06', 'VN-14', 'VN-71'],
+                    bounds: new google.maps.LatLngBounds(
+                        new google.maps.LatLng(20.305492, 102.144997),
+                        new google.maps.LatLng(22.84444, 105.861419))
+                },
+                '2': {
+                    id: [2],
+                    states: ['VN-03', 'VN-04', 'VN-07', 'VN-09', 'VN-53', 'VN-54', 'VN-68', 'VN-69'],
+                    bounds: new google.maps.LatLngBounds(
+                        new google.maps.LatLng(20.917162, 104.334457),
+                        new google.maps.LatLng(23.392731, 107.363777)),
+                },
+                '3': {
+                    id: [3],
+                    states: ['VN-13', 'VN-18', 'VN-20', 'VN-56', 'VN-61',
+                        'VN-63', 'VN-66', 'VN-67', 'VN-70', 'VN-HN', 'VN-HP'],
+                    bounds: new google.maps.LatLngBounds(
+                        new google.maps.LatLng(19.909447, 105.286415),
+                        new google.maps.LatLng(21.573984, 107.864029)),
+                },
+                '4': {
+                    id: [4],
+                    states: ['VN-21', 'VN-22', 'VN-23', 'VN-24', 'VN-25', 'VN-26'],
+                    bounds: new google.maps.LatLngBounds(
+                        new google.maps.LatLng(15.994475, 103.871849),
+                        new google.maps.LatLng(20.670799, 108.194328)),
+                },
+                '5': {
+                    id: [5],
+                    states: ['VN-27', 'VN-29', 'VN-31', 'VN-32', 'VN-34', 'VN-36', 'VN-40', 'VN-DN'],
+                    bounds: new google.maps.LatLngBounds(
+                    new google.maps.LatLng(9.970021, 107.210426),
+                    new google.maps.LatLng(16.225834, 109.469429)),
+                },
+                '6': {
+                    id: [6],
+                    states: ['VN-28', 'VN-30', 'VN-33', 'VN-35', 'VN-72'],
+                    bounds: new google.maps.LatLngBounds(
+                        new google.maps.LatLng(11.215216, 107.205612),
+                        new google.maps.LatLng(15.417597, 108.994995)),
+                },
+                '7': {
+                    id: [7],
+                    states: ['VN-37', 'VN-39', 'VN-43', 'VN-57', 'VN-58', 'VN-SG'],
+                    bounds: new google.maps.LatLngBounds(
+                        new google.maps.LatLng(8.605942, 105.809471),
+                        new google.maps.LatLng(12.297761, 107.582169)),
+                },
+                '8': {
+                    id: [8],
+                    states: [
+                        'VN-41', 'VN-44', 'VN-45', 'VN-46', 'VN-47', 'VN-49',
+                        'VN-50', 'VN-51', 'VN-52', 'VN-55', 'VN-59', 'VN-73', 'VN-CT'
+                    ],
+                    bounds: new google.maps.LatLngBounds(
+                        new google.maps.LatLng(8.563332, 103.458206),
+                        new google.maps.LatLng(11.032491, 106.791946))
+                }
+            },
+
+            // Strict bounds, by Geocoder (sw, ne)
+            /*
+            var geocoder = new google.maps.Geocoder();
+            geocoder.geocode({
+                'address' : 'Viet Nam'
+            }, function (results, status) {
+                if (status == google.maps.GeocoderStatus.OK) {
+                    var viewport = results[0].geometry.viewport;
+                    console.log(viewport);
+                }
+            });
+            */
+            strictBounds: new google.maps.LatLngBounds(
+                    new google.maps.LatLng(8.412729, 102.14441),
+                    new google.maps.LatLng(23.393395, 109.468977)),
+
+            initialize: function (options) {
+                var self = this;
+
+                self.regions['north'] = {
+                    id: [1, 2, 3],
+                    bounds: new google.maps.LatLngBounds(
+                        self.regions['1'].bounds.getSouthWest(),
+                        self.regions['1'].bounds.getNorthEast())
+                };
+
+                self.regions['north'].bounds.union(self.regions['2'].bounds);
+                self.regions['north'].bounds.union(self.regions['3'].bounds);
+
+                // North West & Red River Delta
+                self.regions['1-3'] = {
+                    id: [1, 3],
+                    bounds: new google.maps.LatLngBounds(
+                        self.regions['1'].bounds.getSouthWest(),
+                        self.regions['1'].bounds.getNorthEast())
+                };
+
+                self.regions['1-3'].bounds.union(self.regions['3'].bounds);
+
+                self.regions['central'] = {
+                    id: [4, 5, 6],
+                    bounds: new google.maps.LatLngBounds(
+                        self.regions['4'].bounds.getSouthWest(),
+                        self.regions['4'].bounds.getNorthEast())
+                };
+
+                self.regions['central'].bounds.union(self.regions['5'].bounds);
+                self.regions['central'].bounds.union(self.regions['6'].bounds);
+
+                // Central Highlands & South Central Coast
+                self.regions['5-6'] = {
+                    id: [5, 6],
+                    bounds: new google.maps.LatLngBounds(
+                        self.regions['5'].bounds.getSouthWest(),
+                        self.regions['5'].bounds.getNorthEast())
+                };
+
+                self.regions['5-6']
+                    .bounds.union(self.regions['6'].bounds);
+
+                self.regions['south'] = {
+                    id: [7, 8],
+                    bounds: new google.maps.LatLngBounds(
+                        self.regions['7'].bounds.getSouthWest(),
+                        self.regions['7'].bounds.getNorthEast())
+                };
+
+                self.regions['south'].bounds.union(self.regions['8'].bounds);
+            },
+
+            load: function (regions) {
+                var self = this;
+
+                regions = regions || [];
+                var regionsToLoad = [];
+                for (var i = 0; i < regions.length; i++) {
+
+                    // Not loading and loaded
+                    if (!self.loading[regions[i]] && !self.loaded[regions[i]]) {
+
+                        regionsToLoad.push(regions[i]);
+
+                        // Add to loading regions
+                        self.loading[regions[i]] = true;
+                    }
+                }
+
+                if (regionsToLoad.length == 0) {
+                    return;
+                }
+
+                // Initialize JSONP request
+                var key = 'AIzaSyDEs_f9851pMMMKuusSpwovQjoBHVkOk5E';
+
+                var url = ['https://www.googleapis.com/fusiontables/v2/query?'];
+                var docId = '1W9j3g2B5FpoPqWqwIyWup8ZH1JVkfIhQdsoV76oH';
+                var query = 'SELECT name, iso2, region, geometry FROM ' + docId;
+                query = query + ' WHERE region IN (' + regionsToLoad.join(',') + ')';
+                var encodedQuery = encodeURIComponent(query);
+                url.push('sql=' + encodedQuery);
+                url.push('&key=' + key);
+                //url.push('&alt=media');
+
+                // Add to loading regions
+                self.performance[regionsToLoad] = performance.now();
+                console.log('Start load: [' + regionsToLoad +
+                    '], all loading: [' + Object.keys(self.loading) +
+                    '], loaded: [' + Object.keys(self.loaded) + '], url: ' + url.join(''));
+
+                $('#loading').removeClass('hidden');
+
+                $.ajax({
+                    url: url.join(''),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'jsonp',
+                    beforeSend: (function (data) {
+                        return function (xhr) {
+                            // Request region
+                            xhr.regions = data
+                        };
+                    })(regionsToLoad),
+                    success: function (data, status, xhr) {
+                        // Remove from loading
+                        for (var i = 0; i < xhr.regions.length; i++) {
+                            delete self.loading[xhr.regions[i]];
+                        }
+
+                        var r = xhr.regions.join(',');
+                        var et = performance.now();
+                        console.log('Load data ' + r + ' completed in ' + (et - self.performance[r]) + ' milliseconds');
+                        delete self.performance[r];
+                        self.drawMap(data, xhr.regions);
+                    },
+                    error: function (xhr) {
+                        // Remove from loading
+                        for (var i = 0; i < xhr.regions.length; i++) {
+                            delete self.loading[xhr.regions[i]];
+                        }
+
+                        if (xhr.status == 400) {
+                            alert(xhr.responseText);
+                        }
+
+                        console.log(xhr);
+                    }
+                });
+            },
+
+            colors: [
+                '#2B908F', '#55BF3B', '#7798BF', '#7CB5EC', '#8085E9',
+                '#8D4654', '#90EE7E', '#AAEEEE', '#DDDF0D', '#DF5353', '#EEAAEE',
+                '#F45B5B', '#F7A35C', '#FF0066', '#0000FF', '#00FF00', '#058DC7',
+                '#24CBE5', '#50B432', '#64E572', '#6AF9C4', '#DDDF00', '#ED561B',
+                '#FF0000', '#FF9655', '#FFF263'
+            ],
+
+            drawMap: function (data, regions) {
+                var self = this;
+
+                var st = performance.now();
+                var rows = data['rows'];
+
+                //var rbounds = {};
+                for (var i in rows) {
+                    var coordinates = [];
+                    var geometries = rows[i][3]['geometries'];
+
+                    // Not exist
+                    //if(!rbounds[rows[i][1]]) {
+                    //    rbounds[rows[i][1]] = new google.maps.LatLngBounds();
+                    //}
+
+                    if (geometries) {
+                        for (var j in geometries) {
+                            coordinates.push(self.transformCoords(geometries[j]));
+                        }
+                    } else {
+                        coordinates = self.transformCoords(rows[i][3]['geometry']);
+                    }
+
+                    var r = Math.floor(Math.random() * self.colors.length);
+
+                    var fillColor = self.colors[r];
+                    var bb = fillColor.slice(-2);
+                    var gg = fillColor.slice(-4, -2);
+                    var rr = fillColor.slice(-6, -4);
+
+                    var normalStyle = {
+                        strokeColor: self.colors[r],
+                        strokeOpacity: 0,
+                        strokeWeight: 1,
+                        fillColor: self.randomColor(rr, gg, bb),
+                        fillOpacity: 0.35
+                    };
+
+                    var polygon = new google.maps.Polygon({
+                        paths: coordinates
+                    });
+
+                    polygon.normalStyle = normalStyle;
+                    polygon.setOptions(normalStyle);
+
+                    self.addPolyHighlighter(polygon);
+
+                    var names = {
+                        '1': 'North West',
+                        '2': 'North East',
+                        '3': 'Red River Delta',
+                        '4': 'North Central Coast',
+                        '5': 'South Central Coast',
+                        '6': 'Central Highlands',
+                        '7': 'South East',
+                        '8': 'Mekong River Delta',
+                    };
+
+                    polygon.state = {
+                        name: rows[i][0],
+                        iso: rows[i][1],
+                        region: names[rows[i][2]]
+                    };
+
+                    google.maps.event.addListener(polygon, 'click', function (e) {
+
+                        var infoOptions = {
+                            content: '<div class="info"><h3>' + this.state.name +
+                                '</h3><div>' + this.state.iso + '</div><div>' + this.state.region + '</div></div>',
+                            pixelOffset: new google.maps.Size(0, 2)
+                        }
+
+                        self.infoWindow.close();
+                        self.infoWindow.setOptions(infoOptions);
+
+                        if (e && e.latLng) {
+                            self.infoWindow.setPosition(e.latLng);
+                        } else {
+                            self.infoWindow.setPosition(point);
+                        }
+
+                        self.infoWindow.open(self.map || self.polylines[0].map);
+                    });
+
+                    self.placemarks[rows[i][2]] = polygon;
+
+                    polygon.setMap(self.map);
+                }
+
+                // Render OK mark as loaded region
+                for (var i = 0; i < regions.length; i++) {
+                    self.loaded[regions[i]] = true;
+                }
+
+                var et = performance.now();
+                console.log('Draw map completed ' + regions.join(',') +
+                    ' in ' + (et - st) + ' milliseconds')
+                console.log('All loading: []' + Object.keys(self.loading) + '], loaded: [' + Object.keys(self.loaded) + '].');
+
+                $('#loading').addClass('hidden');
+            },
+
+            loadNext: function (center) {
+                var self = this;
+
+                var lng = center.lng(),
+                    lat = center.lat();
+
+                // Check for region polygons loaded or not by latitude
+                var regions = [
+                    self.regions['north'],
+                    self.regions['4'],         // North Central Coast
+                    self.regions['5-6'],     // Central Highlands & South Central Coast
+                    self.regions['south']
+                ];
+
+                // Check for region polygons loaded or not by latitude
+                var top, bottom, regionsToLoad = [];
+
+                for (var i in regions) {
+                    top = regions[i].bounds.getNorthEast().lat();
+                    bottom = regions[i].bounds.getSouthWest().lat();
+
+                    if (regions[i].bounds.contains(center)) {
+                        regionsToLoad = regions[i].id;
+                        break;
+                    }
+
+                    if (lat >= (bottom - 7) && lat <= top) {
+                        regionsToLoad = regions[i].id;
+                    }
+                }
+
+                //for(var i = 0; i < regionsToLoad.length; i++) {
+                //    self.load([ regionsToLoad[i] ]);
+                //}
+
+                self.load(regionsToLoad);
+            },
+
+            // Implemented per KML 2.2 <ColorStyle> specs
+            randomColor: function (rr, gg, bb) {
+                var col = {
+                    rr: rr,
+                    gg: gg,
+                    bb: bb
+                };
+                for (var k in col) {
+                    var v = col[k];
+                    if (v == null) {
+                        v = 'FF';
+                    }
+
+                    // RGB values are limiters for random numbers (ie: 7f would be a random value between 0 and 7f)
+                    v = Math.round(Math.random() * parseInt(col[k], 16)).toString(16);
+                    if (v.length === 1) {
+                        v = '0' + v;
+                    }
+
+                    col[k] = v;
+                }
+
+                return '#' + col.rr + col.gg + col.bb;
+            },
+
+            transformCoords: function (polygon) {
+                var result = [];
+
+                var coordinates = polygon['coordinates'][0];
+                for (var i in coordinates) {
+                    result.push(new google.maps.LatLng(coordinates[i][1], coordinates[i][0]));
+                }
+
+                return result;
+            },
+
+            addPolyHighlighter: function (poly) {
+                var self = this;
+
+                // poly.setOptions({fillColor: "#0000FF", strokeColor: "#0000FF", fillOpacity: 0.3}) ;
+                google.maps.event.addListener(poly, 'mouseover', function () {
+
+                    if (poly instanceof google.maps.Polygon) {
+                        poly.setOptions(self.highlight);
+                    } else if (poly instanceof google.maps.Polyline) {
+                        poly.setOptions(self.lineHighlight);
+                    }
+                });
+
+                google.maps.event.addListener(poly, 'mouseout', function () {
+
+                    var r = Math.floor(Math.random() * self.colors.length);
+
+                    var fillColor = self.colors[r];
+                    var bb = fillColor.slice(-2);
+                    var gg = fillColor.slice(-4, -2);
+                    var rr = fillColor.slice(-6, -4);
+
+                    var normalStyle = poly.normalStyle || {
+                        strokeColor: self.colors[r],
+                        strokeOpacity: 0,
+                        strokeWeight: 1,
+                        fillColor: self.randomColor(rr, gg, bb),
+                        fillOpacity: 0.35
+                    };
+
+                    poly.setOptions(normalStyle);
+                });
+            },
+        };
+
+        function dms2dd(degrees, minutes, seconds, direction) {
+
+            degrees = degrees || 0;
+            minutes = minutes || 0;
+            seconds = seconds || 0;
+            direction = direction || 'n';
+
+            // Converts DMS coordinates to decimal
+            // returns false on bad inputs, decimal on success
+
+            // Direction must be n, s, e or w, case-insensitive
+            d = direction.toLowerCase();
+            ok = ['n', 's', 'e', 'w'];
+
+            degrees = parseFloat(degrees);
+            minutes = parseFloat(minutes);
+            seconds = parseFloat(seconds);
+
+            // degrees must be integer between 0 and 180
+            if (isNaN(degrees) || degrees < 0 || degrees > 180) {
+                decimal = false;
+            }
+                // minutes must be integer or float between 0 and 59
+            else if (isNaN(minutes) || minutes < 0 || minutes > 59) {
+                decimal = false;
+            }
+                // seconds must be integer or float between 0 and 59
+            else if (isNaN(seconds) || seconds < 0 || seconds > 59) {
+                decimal = false;
+            }
+            else if (ok.indexOf(d) == -1) {
+                decimal = false;
+            }
+            else {
+                // inputs clean, calculate
+                decimal = degrees + (minutes / 60) + (seconds / 3600);
+
+                // reverse for south or west coordinates; north is assumed
+                if (d == 's' || d == 'w') {
+                    decimal *= -1;
+                }
+            }
+
+            return decimal;
+        }
+
+        function parseDms(input) {
+
+            input = input || '';
+            input = input.trim();
+
+            if (input == '') {
+                return [];
+            }
+
+            var de, m, s, di;
+            de = input.substring(0, input.indexOf('°'));
+            m = input.substring(de.length + 1, input.indexOf("'"));
+            s = input.substring(de.length + m.length + 2, input.indexOf('"'));
+            di = input.substr(input.length - 1, 1).toLowerCase();
+
+            return [de, m, s, di];
+        }
+
+        function initialize() {
+
+            var mapOptions = {
+                center: new google.maps.LatLng(10.788899, 106.684354),
+                zoom: 7,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+
+            // This is the minimum zoom level that we'll allow
+            var minZoomLevel = 5;
+
+            _pgm.map = new google.maps.Map(document.getElementById('map-canvas'),
+                    mapOptions);
+
+            _pgm.load([7, 8]);
+            //loadRegions([7]);
+            //loadRegions([8]);
+
+            // Listen for the dragend event
+            google.maps.event.addListener(_pgm.map, 'dragend', function () {
+
+                var center = _pgm.map.getCenter();
+                var lng = center.lng(),
+                    lat = center.lat();
+
+                if (_pgm.strictBounds.contains(center)) {
+
+                    _pgm.loadNext(center);
+                    return;
+                }
+
+                // We're out of bounds - Move the map back within the bounds
+                var maxX = _pgm.strictBounds.getNorthEast().lng(),
+                    minX = _pgm.strictBounds.getSouthWest().lng(),
+                    maxY = _pgm.strictBounds.getNorthEast().lat(),
+                    minY = _pgm.strictBounds.getSouthWest().lat();
+
+                if (lng < minX) {
+                    lng = minX;
+                }
+
+                if (lng > maxX) {
+                    lng = maxX;
+                }
+
+                if (lat < minY) {
+                    lat = minY;
+                }
+
+                if (lat > maxY) {
+                    lat = maxY;
+                }
+
+                _pgm.map.setCenter(new google.maps.LatLng(lat, lng));
+            });
+
+            // Limit the zoom level
+            google.maps.event.addListener(_pgm.map, 'zoom_changed', function () {
+                if (_pgm.map.getZoom() < minZoomLevel) {
+                    _pgm.map.setZoom(minZoomLevel);
+                }
+            });
+        };
+
+        // Initialize
+        _pgm.initialize();
+
+        google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+</head>
+<body>
+    <div id="wrapper">
+        <div id="map-canvas"></div>
+        <div id="loading" class="hidden"><a class="fa fa-spinner"></a></div>
+    </div>
+</body>
+</html>
